@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkillSync | Smart Job Portal with Skill Matching</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="navbar no-print">
+    <div class="logo">
+      <span class="logo-badge">SS</span>
+      <div>
+        <h1>SkillSync</h1>
+        <p>Smart Job Portal & AI Skill Matcher</p>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-links">
+      <button class="nav-btn active" onclick="switchTab('jobs-tab', this)">1. Job Matcher</button>
+      <button class="nav-btn" onclick="switchTab('ats-tab', this)">
+        2. My Applications <span id="app-count-badge" class="badge">0</span>
+      </button>
+      <button class="nav-btn" onclick="switchTab('resume-tab', this)">3. Resume Builder</button>
+      <button class="nav-btn recruiter-btn" onclick="switchTab('recruiter-tab', this)">4. Recruiter Portal</button>
+    </nav>
+  </header>
+
+  <main class="container">
+
+    <!-- =========================================================
+         MODULE 1: CANDIDATE SKILLS, RESUME PARSER & JOB MATCHER
+    ========================================================== -->
+    <section id="jobs-tab" class="tab-content active">
+      <div class="grid-layout">
+
+        <!-- LEFT SIDEBAR: Candidate Skills & Resume Upload -->
+        <aside class="sidebar">
+          <div class="card">
+            <h2>Your Skill Profile</h2>
+            <p class="muted-text">Add skills manually or paste your resume below to calculate your AI Match Score.</p>
+
+            <!-- Manual Skill Input -->
+            <div class="input-group">
+              <input type="text" id="skill-input" placeholder="e.g. React, Python, SQL" />
+              <button class="btn-primary" onclick="addSkillFromInput()">Add</button>
+            </div>
+
+            <!-- Active Skill Tags -->
+            <div id="user-skills-container" class="tags-container"></div>
+          </div>
+
+          <!-- Resume Upload & Keyword Parser -->
+          <div class="card">
+            <h2>Resume Skill Parser</h2>
+            <p class="muted-text">Upload a `.txt` resume or paste your resume summary to auto-extract technical skills.</p>
+            
+            <input type="file" id="resume-file" accept=".txt" onchange="handleFileUpload(event)" class="file-input" />
+            
+            <textarea id="resume-text" rows="4" placeholder="Paste resume text here... e.g. Built web apps using HTML, CSS, JavaScript, React, Node.js and MongoDB."></textarea>
+            
+            <div class="btn-row">
+              <button class="btn-primary full-width" onclick="parseResumeText()">Extract Skills</button>
+              <button class="btn-secondary" onclick="loadSampleResume()">Demo Text</button>
+            </div>
+            <p id="parser-message" class="status-msg"></p>
+          </div>
+        </aside>
+
+        <!-- RIGHT MAIN AREA: Recommended Jobs Feed -->
+        <div class="main-panel">
+          <div class="filter-bar card">
+            <input type="text" id="search-input" placeholder="Search by job role or company..." oninput="renderJobs()" />
+            <select id="sort-select" onchange="renderJobs()">
+              <option value="match">Sort by: Highest Skill Match %</option>
+              <option value="all">Show All Jobs</option>
+            </select>
+          </div>
+
+          <!-- Dynamic Job Cards Render Here -->
+          <div id="jobs-container" class="jobs-list"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================
+         MODULE 2: APPLICATION TRACKING SYSTEM (ATS)
+    ========================================================== -->
+    <section id="ats-tab" class="tab-content">
+      <div class="card">
+        <h2>Application Tracking System (ATS)</h2>
+        <p class="muted-text">Track real-time status updates from recruiters for every role you applied to.</p>
+        <div id="ats-container" class="ats-list"></div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         MODULE 3: INTERACTIVE RESUME BUILDER
+    ========================================================== -->
+    <section id="resume-tab" class="tab-content">
+      <div class="grid-layout">
+
+        <!-- Left Form: Edit Resume Details -->
+        <div class="card no-print">
+          <h2>Edit Resume Details</h2>
+          <label>Full Name</label>
+          <input type="text" id="res-name" value="Chaitanya Harode" oninput="updateResumePreview()" />
+
+          <label>Target Role</label>
+          <input type="text" id="res-role" value="Full Stack Web Developer" oninput="updateResumePreview()" />
+
+          <label>Email & Phone</label>
+          <input type="text" id="res-contact" value="chaitanya@example.com | +91 9876543210 | Nagpur, MH" oninput="updateResumePreview()" />
+
+          <label>Education</label>
+          <input type="text" id="res-edu" value="Bachelor of Computer Applications (BCA) - RTMNU Nagpur" oninput="updateResumePreview()" />
+
+          <label>Career Summary</label>
+          <textarea id="res-summary" rows="3" oninput="updateResumePreview()">Passionate web developer skilled in building responsive web applications, interactive dashboards, and RESTful APIs using modern JavaScript technologies.</textarea>
+
+          <label>Key Academic Projects</label>
+          <textarea id="res-projects" rows="4" oninput="updateResumePreview()">1. SkillSync - Smart Job Portal with AI Skill Matching Algorithm.
+2. QuickCare - Online Doctor Appointment & Patient Management System.</textarea>
+
+          <button class="btn-primary full-width" onclick="window.print()">Download / Print PDF Resume</button>
+        </div>
+
+        <!-- Right Preview: Printable Resume Sheet -->
+        <div class="resume-sheet" id="printable-resume">
+          <h1 id="prev-name">Chaitanya Harode</h1>
+          <h3 id="prev-role">Full Stack Web Developer</h3>
+          <p id="prev-contact" class="resume-contact"></p>
+          <hr />
+          <h4>PROFESSIONAL SUMMARY</h4>
+          <p id="prev-summary"></p>
+          <h4>TECHNICAL SKILLS (Synced from Profile)</h4>
+          <div id="prev-skills" class="tags-container"></div>
+          <h4>EDUCATION</h4>
+          <p id="prev-edu"></p>
+          <h4>PROJECTS</h4>
+          <pre id="prev-projects" class="resume-projects"></pre>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================
+         MODULE 4: RECRUITER DASHBOARD
+    ========================================================== -->
+    <section id="recruiter-tab" class="tab-content">
+      <div class="grid-layout">
+
+        <!-- Left Form: Post a New Job -->
+        <aside class="card">
+          <h2>Post a New Job</h2>
+          <form onsubmit="postNewJob(event)">
+            <label>Job Title</label>
+            <input type="text" id="job-title" placeholder="e.g. React Frontend Intern" required />
+
+            <label>Company Name</label>
+            <input type="text" id="job-company" placeholder="e.g. TCS Digital" required />
+
+            <label>Location & Salary</label>
+            <input type="text" id="job-meta" placeholder="e.g. Pune / Remote | 6 LPA" required />
+
+            <label>Required Skills (comma separated)</label>
+            <input type="text" id="job-skills" placeholder="e.g. HTML, CSS, JavaScript, React" required />
+
+            <button type="submit" class="btn-primary full-width">Publish Job Opening</button>
+          </form>
+        </aside>
+
+        <!-- Right Table: Manage Candidate Applications -->
+        <div class="card">
+          <div class="recruiter-header">
+            <div>
+              <h2>Candidate Applications</h2>
+              <p class="muted-text">Filter candidates by AI Match Score and update their hiring stage.</p>
+            </div>
+            <div class="slider-box">
+              <label>Min Match Score: <strong id="min-score-label">0%</strong></label>
+              <input type="range" id="min-score-slider" min="0" max="100" value="0" oninput="renderRecruiterTable()" />
+            </div>
+          </div>
+
+          <table class="recruiter-table">
+            <thead>
+              <tr>
+                <th>Candidate</th>
+                <th>Job Role</th>
+                <th>AI Match Score</th>
+                <th>Current Status</th>
+                <th>Update Action</th>
+              </tr>
+            </thead>
+            <tbody id="recruiter-tbody"></tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
